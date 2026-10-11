@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Streak – Roz ka Hisaab</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--tx:#14171c;--mu:#6b7280;--ac:#ff6b1a;--ok:#16a34a;--bad:#dc2626;--ln:#e5e7eb;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1115;--card:#191c22;--tx:#f1f3f5;--mu:#9aa3af;--ln:#2a2f38}}
+:root[data-theme="dark"]{--bg:#0f1115;--card:#191c22;--tx:#f1f3f5;--mu:#9aa3af;--ln:#2a2f38}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;max-width:560px;margin:auto;padding:14px}
+h1{font-size:22px;margin:6px 0 2px}
+.sub{color:var(--mu);font-size:13px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:14px;margin-bottom:14px}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.name{font-weight:700;font-size:18px}
+.fire{font-size:26px;font-weight:800;color:var(--ac)}
+.mu{color:var(--mu);font-size:13px}
+.bar{height:8px;background:var(--ln);border-radius:9px;overflow:hidden;margin:10px 0 6px}
+.bar i{display:block;height:100%;background:var(--ac)}
+.grid{display:flex;flex-wrap:wrap;gap:4px;margin:10px 0}
+.d{width:16px;height:16px;border-radius:4px;background:var(--ln)}
+.d.ok{background:var(--ok)}.d.miss{background:var(--bad);opacity:.7}.d.today{outline:2px solid var(--ac)}
+button,.btn{font:inherit;border:0;border-radius:12px;padding:12px 14px;background:var(--ac);color:#fff;font-weight:700;cursor:pointer;width:100%}
+button.sec{background:var(--ln);color:var(--tx);font-weight:600;padding:9px 12px;width:auto;font-size:14px}
+button[disabled]{background:var(--ok);opacity:.85}
+input[type=text],input[type=number]{font:inherit;width:100%;padding:11px;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);margin:4px 0 8px}
+label{font-size:13px;color:var(--mu)}
+.ph{display:flex;gap:8px;margin-top:10px}
+.ph div{flex:1;text-align:center;font-size:12px;color:var(--mu)}
+.ph img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:10px;background:var(--ln);display:block;margin-bottom:4px}
+.ph .empty{aspect-ratio:3/4;border-radius:10px;border:2px dashed var(--ln);display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.tag{display:inline-block;background:var(--ok);color:#fff;border-radius:8px;padding:2px 8px;font-size:12px;margin-top:6px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.stats{display:flex;gap:8px;text-align:center}.stats div{flex:1;background:var(--bg);border-radius:10px;padding:8px}
+.stats b{display:block;font-size:18px}
+</style>
+</head>
+<body>
+<h1>🔥 Streak</h1>
+<div class="sub">Roz karo. Ek din bhi chhoota to count phir se shuru.</div>
+<div id="list"></div>
+<div class="card" id="add">
+  <div class="name" style="margin-bottom:6px">➕ Naya task</div>
+  <label>Task ka naam</label><input type="text" id="n" placeholder="Jaise: Roz 30 min walk">
+  <label>Kitne din ka target?</label><input type="number" id="dd" value="30" min="1">
+  <label>Shuruaat ki photo (Before)</label><input type="file" id="bp" accept="image/*">
+  <div style="height:8px"></div><button onclick="addT()">Shuru karo</button>
+</div>
+<div class="acts" style="margin-bottom:30px">
+  <button class="sec" onclick="exp()">⬇ Backup</button>
+  <button class="sec" onclick="document.getElementById('imp').click()">⬆ Restore</button>
+  <input type="file" id="imp" accept="application/json" style="display:none" onchange="imp(event)">
+</div>
+<script>
+var KEY='streak_v1',T=[];
+function load(){try{T=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){T=[]}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(T))}catch(e){alert('Storage full ya band hai. Backup le lo aur purani photo hata do.')}}
+function k(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function pd(s){var a=s.split('-');return new Date(+a[0],+a[1]-1,+a[2])}
+function add(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x}
+function esc(s){var e=document.createElement('div');e.textContent=s;return e.innerHTML}
+function dayNo(t){return Math.round((pd(k(new Date()))-pd(t.start))/864e5)+1}
+function cur(t){var s={};t.log.forEach(function(x){s[x]=1});var d=new Date();if(!s[k(d)])d=add(d,-1);var c=0;while(s[k(d)]){c++;d=add(d,-1)}return c}
+function best(t){var a=t.log.slice().sort(),b=0,c=0,p=null;a.forEach(function(x){c=(p&&k(add(pd(p),1))===x)?c+1:1;if(c>b)b=c;p=x});return b}
+function img(file,cb){var r=new FileReader();r.onload=function(){var i=new Image();i.onload=function(){var m=640,s=Math.min(1,m/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*s;c.height=i.height*s;c.getContext('2d').drawImage(i,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.6))};i.src=r.result};r.readAsDataURL(file)}
+function addT(){var n=document.getElementById('n').value.trim(),d=+document.getElementById('dd').value,f=document.getElementById('bp').files[0];
+  if(!n||!d){alert('Naam aur din dono daalo');return}
+  var t={id:Date.now(),name:n,days:d,start:k(new Date()),log:[],before:'',after:''};
+  var fin=function(){T.push(t);save();document.getElementById('n').value='';document.getElementById('bp').value='';render()};
+  if(f)img(f,function(u){t.before=u;fin()});else fin()}
+function done(id){var t=T.find(function(x){return x.id==id}),d=k(new Date());if(t.log.indexOf(d)<0)t.log.push(d);save();render()}
+function ph(id,w){var f=document.createElement('input');f.type='file';f.accept='image/*';f.onchange=function(){img(f.files[0],function(u){T.find(function(x){return x.id==id})[w]=u;save();render()})};f.click()}
+function del(id){if(confirm('Ye task aur uska poora record delete ho jayega. Pakka?')){T=T.filter(function(x){return x.id!=id});save();render()}}
+function exp(){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(T)],{type:'application/json'}));a.download='streak-backup-'+k(new Date())+'.json';a.click()}
+function imp(e){var r=new FileReader();r.onload=function(){try{T=JSON.parse(r.result);save();render()}catch(x){alert('File sahi nahi hai')}};r.readAsText(e.target.files[0])}
+function card(t){
+  var n=dayNo(t),c=cur(t),b=best(t),tot=t.log.length,doneT=k(new Date()),has=t.log.indexOf(doneT)>=0,
+      miss=Math.max(0,(n-(has?0:1))-tot),over=tot>=t.days,pct=Math.min(100,Math.round(tot/t.days*100)),g='',len=Math.min(Math.max(t.days,n),120),s=pd(t.start);
+  for(var i=0;i<len;i++){var d=k(add(s,i)),cl='d';if(t.log.indexOf(d)>=0)cl+=' ok';else if(i+1<n)cl+=' miss';if(i+1==n)cl+=' today';g+='<div class="'+cl+'"></div>'}
+  var H='<div class="card"><div class="row"><div><div class="name">'+esc(t.name)+'</div><div class="mu">Din '+n+' · target '+t.days+' din</div></div><div class="fire">🔥 '+c+'</div></div>';
+  H+='<div class="bar"><i style="width:'+pct+'%"></i></div><div class="mu">'+tot+'/'+t.days+' din pure ('+pct+'%)</div>';
+  if(over)H+='<span class="tag">🎉 Target complete! Chaaho to aage bhi chalao (+'+(tot-t.days)+' bonus)</span>';
+  H+='<div class="grid">'+g+'</div><div class="stats"><div><b>'+b+'</b><span class="mu">Best streak</span></div><div><b>'+miss+'</b><span class="mu">Miss din</span></div><div><b>'+tot+'</b><span class="mu">Total din</span></div></div>';
+  H+='<div style="height:10px"></div><button '+(has?'disabled':'')+' onclick="done('+t.id+')">'+(has?'✅ Aaj ho gaya':'Aaj ka kaam ho gaya ✅')+'</button>';
+  H+='<div class="ph"><div>'+(t.before?'<img src="'+t.before+'">':'<div class="empty">+</div>')+'Before</div><div>'+(t.after?'<img src="'+t.after+'">':'<div class="empty">?</div>')+'After</div></div>';
+  H+='<div class="acts"><button class="sec" onclick="ph('+t.id+',\'before\')">📷 Before</button><button class="sec" onclick="ph('+t.id+',\'after\')">📷 After</button><button class="sec" onclick="del('+t.id+')">🗑</button></div></div>';
+  return H}
+function render(){document.getElementById('list').innerHTML=T.map(card).join('')||'<div class="card mu">Abhi koi task nahi. Neeche se pehla task banao 👇</div>'}
+load();render();
+</script>
+</body>
+</html>
