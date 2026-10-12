@@ -63,6 +63,7 @@ function k(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+
 function pd(s){var a=s.split('-');return new Date(+a[0],+a[1]-1,+a[2])}
 function add(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x}
 function esc(s){var e=document.createElement('div');e.textContent=s;return e.innerHTML}
+function fd(s){return pd(s).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}
 function dayNo(t){return Math.round((pd(k(new Date()))-pd(t.start))/864e5)+1}
 function cur(t){var s={};t.log.forEach(function(x){s[x]=1});var d=new Date();if(!s[k(d)])d=add(d,-1);var c=0;while(s[k(d)]){c++;d=add(d,-1)}return c}
 function best(t){var a=t.log.slice().sort(),b=0,c=0,p=null;a.forEach(function(x){c=(p&&k(add(pd(p),1))===x)?c+1:1;if(c>b)b=c;p=x});return b}
@@ -81,7 +82,7 @@ function card(t){
   var n=dayNo(t),c=cur(t),b=best(t),tot=t.log.length,doneT=k(new Date()),has=t.log.indexOf(doneT)>=0,
       miss=Math.max(0,(n-(has?0:1))-tot),over=tot>=t.days,pct=Math.min(100,Math.round(tot/t.days*100)),g='',len=Math.min(Math.max(t.days,n),120),s=pd(t.start);
   for(var i=0;i<len;i++){var d=k(add(s,i)),cl='d';if(t.log.indexOf(d)>=0)cl+=' ok';else if(i+1<n)cl+=' miss';if(i+1==n)cl+=' today';g+='<div class="'+cl+'"></div>'}
-  var H='<div class="card"><div class="row"><div><div class="name">'+esc(t.name)+'</div><div class="mu">Din '+n+' · target '+t.days+' din</div></div><div class="fire">🔥 '+c+'</div></div>';
+  var H='<div class="card"><div class="row"><div><div class="name">'+esc(t.name)+'</div><div class="mu">📅 Shuru: <b>'+fd(t.start)+'</b></div><div class="mu">Din '+n+' · target '+t.days+' din</div></div><div class="fire">🔥 '+c+'</div></div>';
   H+='<div class="bar"><i style="width:'+pct+'%"></i></div><div class="mu">'+tot+'/'+t.days+' din pure ('+pct+'%)</div>';
   if(over)H+='<span class="tag">🎉 Target complete! Chaaho to aage bhi chalao (+'+(tot-t.days)+' bonus)</span>';
   H+='<div class="grid">'+g+'</div><div class="stats"><div><b>'+b+'</b><span class="mu">Best streak</span></div><div><b>'+miss+'</b><span class="mu">Miss din</span></div><div><b>'+tot+'</b><span class="mu">Total din</span></div></div>';
